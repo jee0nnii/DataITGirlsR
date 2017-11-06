@@ -1,0 +1,90 @@
+---
+title: "장바구니분석"
+output: html_document
+---
+
+```{r}
+# install.packages("arules")
+# install.packages("arulesViz")
+# install.packages("wordcloud")
+
+library(wordcloud)
+library(arules)
+library(arulesViz)
+```
+###EXAMPLE1. 실제식료품상점의한달간구매데이터(groceries.csv)를이용하여장바구니 분석을해보자.
+
+```{r}
+dat <- read.transactions("C:/Users/Lucy Kim/Documents/dataitgirls/datahee/groceries.csv", sep=",")
+```
+
+```{r}
+dim(dat)
+inspect(dat[1:10])
+```
+
+```{r}
+9835 * 169
+```
+
+```{r}
+summary(dat)
+```
+빈칸의 빈도 0.02609146
+sizes : 한번에 몇개 샀는지
+
+######도식화
+각 항목들의 지지도를 보여줌
+/ 1인 부분만 검은색으로 매트릭스를 그려준 거
+/ 지지도가 0.05보다 큰 애들만 보여줘
+```{r}
+itemFrequencyPlot(dat)
+itemFrequencyPlot(dat, support = 0.05)
+itemFrequencyPlot(dat, topN =20)
+image(dat[1:10]) 
+image(sample(dat,100))
+```
+
+###### 워드클라우드
+```{r}
+# install.packages("RColorBrewer")
+library(RColorBrewer)
+library(wordcloud)
+```
+
+아이템별 지지도가 나옴 : itemFrequency(dat)
+```{r}
+itemName <-itemLabels(dat)
+itemCount <- itemFrequency(dat)
+head(itemCount)
+```
+
+* 비율이 아닌 몇번 발생했는지 알고 싶을 때
+```{r}
+itemCount <- itemFrequency(dat) *nrow(dat)
+col <- brewer.pal(8,"Set1")
+
+wordcloud(words = itemName,
+          freq = itemCount,
+          min.freq = 20,
+          scale =c(3,0.2),
+          col=col,
+          random.order = FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

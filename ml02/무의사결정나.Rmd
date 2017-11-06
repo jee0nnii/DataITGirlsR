@@ -1,0 +1,125 @@
+---
+title: "decisionReview"
+output: html_document
+---
+
+```{r}
+getwd()
+setwd("C:/Users/Lucy Kim/Documents/dataitgirls/datahee")
+```
+
+신용데이터를통한자동화된신용점수모델을만들어, 
+즉시승인하는전화나 웹상의신용애플리케이션에사용하려한다.
+credit.csv 데이터는독일의신용데이터로, 
+대출지원자와대출의특성을나타내는 변수들을포함하고있다.
+종속변수(Y) : default –대출자가협의한반납기간안에반납했는지의여부
+
+```{r cars}
+dat <- read.csv("credit_dataset_final.csv", header = TRUE)
+head(dat)
+
+categorical_vars <- c("credit.rating", "account.balance", "previous.credit.payment.status",
+                      "credit.purpose", "savings", "employment.duration", 
+                      "installment.rate", "marital.status", "guarantor", 
+                      "residence.duration", "current.assets", "other.credits", 
+                      "apartment.type", "bank.credits", "occupation", 
+                      "dependents", "telephone", "foreign.worker")
+```
+
+##팩터로 변경해야될 애들 뽑아서 vars에 넣고 그걸 아래 for문을 통해 팩터형으로 변경!!
+dat[["credit.rating"]]  == dat[,"credit.rating"]
+```{r}
+for (var in categorical_vars){
+  dat[[var]] <- as.factor(dat[[var]])
+}
+```
+
+```{r}
+RandomIndex <- sample(x=1: nrow(dat), size=nrow(dat), replace = TRUE)
+train.dat <- dat[RandomIndex,]
+test.dat <- dat[-RandomIndex,]
+```
+
+#Rpart
+```{r}
+library(rpart)
+rpart_fit <- rpart(credit.rating~., data = train.dat)
+plot(rpart_fit)
+text(rpart_fit, pretty=1)
+```
+
+##사전가지치기
+최소 50개가 들어가야됨
+```{r}
+rpart_fit2 <- rpart(credit.rating~., data = train.dat,
+                    control = rpart.control(minsplit = 50))
+plot(rpart_fit2)
+text(rpart_fit2)
+```
+
+# CP 값이 높을수록 모델을 간단하게 만들어 줌
+```{r}
+rpart_fit3 <- rpart(credit.rating~., data = train.dat,
+                    control = rpart.control(cp=0.05))
+plot(rpart_fit3)
+text(rpart_fit3)
+```
+
+```{r}
+# install.packages("caret")
+library(caret)
+# install.packages("e1071")
+library(e1071)
+```
+함수로 crossvalidation을 알아서 해줌
+```{r}
+?trainControl
+```
+
+```{r}
+CVtrain <- train(credit.rating~.,
+                 data=train.dat,
+                 method="rpart",
+                 trControl=trainControl(method = "cv",
+                                        number = 10))
+                                        # repeats = 2
+
+```
+cv 많이 할수록 안정적인 모델이 나옴 : repeaets으로 설정함
+
+###variable selectioin
+어떤 변수를 선택할건지가 목표!!
+변수의 중요도 정도가 나옴 : varimp
+```{r}
+importance <- varImp(CVtrain)
+plot(importance)
+
+# sort(importance$importance)
+# row.names(importance$)
+impVar <- c("account.balance","apartment.type",
+            "previous.credit.payment.status",
+            "credit.duration.months",
+            "credit.amount")
+
+##new fitting
+form <- as.formula(paste0("credit.rating~",paste0(impVar, collapse="+")))
+form
+```
+
+```{r}
+rpart_fit4 <- rpart(form, data=train.dat,control = rpart.control(minsplit = 50))
+plot(rpart_fit4)
+text(rpart_fit4)
+```
+
+```{r}
+# install.packages("rattle")
+library(rattle)
+```
+
+```{r}
+fancyRpartPlot(rpart_fit4, cex=0.8)
+```
+
+
+

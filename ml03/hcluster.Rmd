@@ -1,0 +1,115 @@
+---
+title: "클러스터링3"
+output: html_document
+---
+```{r}
+wine <- read.table("C:/Users/Lucy Kim/Documents/dataitgirls/datahee/wine.txt",
+                   header=FALSE, sep=",")
+colnames(wine) <- c("Type", "Alcohol", "MalicAcid", "Ash",
+                    "AlcalinityOfAsh", "Magnesium", "TotalPhenols",
+                    "Flavanoids", "NonflavanoidPhenols", "Proanthocyanins",
+                    "ColorIntensity", "Hue", "OD280_OD315_OfDilutedWines", "Proline")
+
+Wine <- wine[ ,-1]
+WineType <- wine[ ,1] 
+```
+
+
+#### 표준화 
+```{r}
+Wine <- as.data.frame(scale(Wine))
+class(Wine)
+```
+
+## H Clustering
+```{r}
+DistWine <- dist(wine, method = "euclidean")
+```
+
+## 최단 연결법
+```{r}
+HClust_Fit1 <- hclust(DistWine, method="single")
+plot(HClust_Fit1)
+rect.hclust(HClust_Fit1, k=3, border = "red")
+HClust_Clust1 <- cutree(HClust_Fit1, k=3)
+HClust_Clust1
+
+table(WineType, HClust_Clust1)
+```
+
+#### 최장연결법
+* k : 클러스터 갯수
+* h  : 데이터의 거리
+
+```{r}
+library(NbClust)
+HClust_Fit12 <- hclust(DistWine, method="complete")
+plot(HClust_Fit12)
+rect.hclust(HClust_Fit12, k=3, border ="blue")
+
+HClust_Clust2 <- cutree(HClust_Fit12, k=3)
+HClust_Clust2
+table(WineType, HClust_Clust2)
+
+rect.hclust(HClust_Fit12, h=8, border ="green")
+NbClust(wine, distance = "euclidean",
+        min.nc = 2, max.nc = 15, method = "complete")
+```
+
+average
+```{r}
+HClust_Fit3 <- hclust(DistWine, method = "average")
+plot(HClust_Fit3)
+rect.hclust(HClust_Fit3, k=3, border = "red")
+
+HClust_Clust3 <- cutree(HClust_Fit3, k = 3)
+table(WineType, HClust_Clust3)
+
+NbClust(wine, distance = "euclidean",
+        min.nc = 2, max.nc = 15, method = "average")
+```
+
+centroid
+```{r}
+HClust_Fit3 <- hclust(DistWine, method = "centroid")
+plot(HClust_Fit3)
+rect.hclust(HClust_Fit3, k=3, border = "red")
+
+HClust_Clust3 <- cutree(HClust_Fit3, k = 3)
+table(WineType, HClust_Clust3)
+
+NbClust(wine, distance = "euclidean",
+        min.nc = 2, max.nc = 15, method = "centroid")
+```
+
+
+
+
+result : 최장연결법이 가장 좋음
+--> 좋다는거 판단하는 기준이 뭔가?????????
+
+
+```{r}
+library(cluster)
+silhouette(HClust_Clust2, dist = DistWine)
+plot(silhouette(HClust_Clust2, dist = DistWine),col=1:3)
+```
+
+
+#### 히트맵 시각화
+```{r}
+heatmap(as.matrix(Wine),
+        distfun = dist,
+        hclustfun = function(d) hclust(d, method = "complete"))
+```
+: 빨갈수록 상관관계 높음
+
+
+
+
+
+
+
+
+
+

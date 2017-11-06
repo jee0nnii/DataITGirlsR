@@ -1,0 +1,172 @@
+---
+title: "Review"
+output: html_document
+---
+
+```{r}
+sample(x=1:30,size =1, replace = TRUE)
+
+####REVIEW####
+#팩토리얼 FOR문
+y <- 1
+iteration <- 20
+for(i in 1:iteration){
+  y <- y*i
+  #print(y)
+  print(paste0("FACTORIAL : ", i ,"! : " , y))
+}
+
+#paste0 : 문자열 여러개를 하나로 합칠 때
+paste0("abc","123","!!!")
+paste0("abc","123","!!!",sep="-")
+paste0(c("abc","123","!!!"),collapse = "-")
+
+i <- 3
+fact <- 1*2*3
+paste0("fact : ", i, "!: ", fact)
+print(fact)
+
+#조건문
+#1-99 까지 3개를 뽑아 평균 낸것이 50보다 크면 크다
+
+no1 <- sample(x=1:99,size =1, replace = TRUE)
+no2 <- sample(x=1:99,size =1, replace = TRUE)
+no3 <- sample(x=1:99,size =1, replace = TRUE)
+
+avg <- (no1*no2*no3) / 3
+
+if (avg < 50){
+  print ("작다")
+}else{
+  print ("크다")
+}
+
+samplenumbers <- sample(x=1:99, size=3, replace =TRUE)
+samplenumbers
+paste0("samplenumbers :" , paste0(samplenumbers, collapse = ","))
+
+length(samplenumbers)
+for (i in 1: length(samplenumbers)){
+   sn <- samplenumbers[i]
+   print(sn)
+ }
+
+#list_sn <- samplenumbers
+#list_sn
+#length(list_sn)
+# for (i in 1: length(list_sn)){
+#   sn <- list_sn[i]
+#   print(sn)
+# }
+
+?sample
+class(samplenumbers)
+samplenumbers_mean <- mean(samplenumbers)
+
+if (samplenumbers_mean < 50){
+  print ("작다")
+}else{
+  print ("크다")
+}
+
+if (samplenumbers_mean < 50){
+  print ("작다")
+}else if (samplenumbers_mean > 50){
+  print ("크다")
+}else{
+  print ("같다")
+}
+
+#ifelse(조건, action1, action2)
+ifelse(samplenumbers_mean == 50, "작다", "크다")
+?ifelse
+
+ifelse(samplenumbers_mean == 50, "same", ifelse(samplenumbers_mean<50, "작다", "크다"))
+
+###################
+
+#For문과If문을이용해, 동전이앞면을나올확률이½로수렴함을시각화로보이자.
+# ①5000번의동전을던지려고한다.
+# ②매번, 앞면/뒷면중하나가선택이된다.
+# ③매시행마다, 앞면이나온비율을구한다.
+# ( 앞면이나온횟수/ 시행한횟수)
+# ④매시행마다의확률을그래프에찍는다.
+# or
+# 매시행마다의확률을벡터로저장해놓는다.
+
+plot(x=0, y=0, 
+     xlim=c(0,5000), ylim=c(0,1))
+#R 에서  y=a+bx : a는 y절편, b가 기울기
+abline(a=0.5, b=0,col ="red",lwd=3)
+
+front <-0 
+times <- 5000
+for (i in 1: times){              #TRUE : 복원추출
+  rolls <- sample(x=c("앞면","뒷면"), size=1, replace =TRUE) #앞면이 나올경우 : 1, 뒷면일 경우 : 2
+  if (rolls == "앞면"){ 
+    front <- front +1  #앞면이 나왔을 때 카운트 늘어남
+  } 
+  prob <- front/i  #확률 : 시행횟수 = i
+  #print(prob)
+  points(x=i,y=prob)
+}
+
+
+###################
+
+plot(x=0, y=0, 
+     xlim=c(0,5000), ylim=c(0,1))
+#R 에서  y=a+bx : a는 y절편, b가 기울기
+abline(a=0.5, b=0,col ="red")
+
+prob2 <- c() #빈공간생성, 빈객체생성, 벡터 초기화 한 거임
+front <-0 
+times <- 5000
+for (i in 1: times){              #TRUE : 복원추출
+  rolls <- sample(x=1:2, size=1, replace =TRUE) #앞면이 나올경우 : 1, 뒷면일 경우 : 2
+  if (rolls == 1){ 
+    front <- front +1  #앞면이 나왔을 때 카운트 늘어남
+  } 
+  prob2[i] <- front/i  #prob2에 값을 다 넣어줌
+ 
+}
+prob2[1:5000]
+points(x=1:5000,y =prob2, type="l",lwd=2)
+
+
+
+###################
+
+p_v <-c()
+
+front <-0 
+times <- 5000
+
+for (i in 1: times){              #TRUE : 복원추출
+  rolls <- sample(x=1:2, size=1, replace =TRUE) #앞면이 나올경우 : 1, 뒷면일 경우 : 2
+  if (rolls == 1){ 
+    front <- front +1  #앞면이 나왔을 때 카운트 늘어남
+  } 
+  p <- front/i  #확률 : 시행횟수 = i
+  print(p)
+  p_v <- c(p_v, p)
+}
+plot(1:5000,p_v)
+
+########
+v <- c() 
+front <-0 
+times <- 5
+for (i in 1: times){        
+  rolls <- sample(x=1:2, size=1, replace =TRUE) 
+  if (rolls == 1){ 
+    front <- front +1  
+  } 
+  pp <- front/i
+  print(pp)
+  v <- c(v, pp)
+}
+plot(1:5,v)
+
+
+```

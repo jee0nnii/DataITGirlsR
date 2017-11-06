@@ -1,0 +1,52 @@
+---
+title: "ml02"
+output: html_document
+---
+
+```{r}
+rm(list=ls())
+data(iris)
+
+set.seed(123)
+RandomIndex <- sample(x=1:5, size=nrow(iris), replace=TRUE)
+prop.table(table(RandomIndex))
+
+MSE1 <- MSE2 <- MSE3 <- c()
+
+for(i in 1:5){
+  
+  ## k-fold
+  TrainDat <- iris[!RandomIndex==i, ]
+  TestDat <- iris[RandomIndex==i, ]
+  
+  ## Model Fitting
+  lmFit1 <- lm(Sepal.Length~., data=TrainDat)
+  lmFit2 <- lm(Sepal.Length~Sepal.Width, data=TrainDat)
+  lmFit3 <- lm(Sepal.Length~Sepal.Width+Petal.Length, data=TrainDat)
+
+  ## Predict
+  lmPred1 <- predict(lmFit1, TestDat)
+  lmPred2 <- predict(lmFit2, TestDat)
+  lmPred3 <- predict(lmFit3, TestDat)
+  
+  ## MSE
+  mse1 <- mean((lmPred1 - TestDat$Sepal.Length)^2)
+  mse2 <- mean((lmPred2 - TestDat$Sepal.Length)^2)
+  mse3 <- mean((lmPred3 - TestDat$Sepal.Length)^2)
+  
+  ## All MSE
+  MSE1 <- c(MSE1, mse1)
+  MSE2 <- c(MSE2, mse2)
+  MSE3 <- c(MSE3, mse3)
+    
+  
+}
+
+mean(MSE1)
+mean(MSE2)
+mean(MSE3)
+
+
+```
+
+

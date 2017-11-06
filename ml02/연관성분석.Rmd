@@ -1,0 +1,98 @@
+---
+title: "연관성분석"
+output: html_document
+---
+```{r}
+library(arules)
+library(arulesViz)
+
+dat <- read.transactions("C:/Users/Lucy Kim/Documents/dataitgirls/datahee/groceries.csv", sep=",")
+str(dat)
+```
+
+```{r}
+rules <- apriori(dat, parameter = list(support=0.006,
+                              confidence=0.25,
+                              minlen=2))
+```
+minlen --> 가져올 개수 : 아이템을 2개
+
+```{r}
+inspect(rules[1:5])
+```
+herbs를 산사람이 root veg를 산 경우가 가장 높음(lift 값)
+lift 순으로 정렬
+```{r}
+inspect(sort(rules, by="lift")[1:5])
+```
+
+베리를 포함하는 거
+```{r}
+berry_rules <- subset(rules, items %in% "berries")
+inspect(berry_rules[1:4])
+```
+
+베리와 요거트를 포함하는 거
+```{r}
+berry_yogurt_rules <- subset(rules, items %in% c("berries","yogurt"))
+inspect(berry_yogurt_rules[1:4])
+```
+
+과일에 대한 연관성 규칙을 가져오겠다
+```{r}
+fruit_rules <- subset(rules, items %pin% c("fruit"))
+inspect(fruit_rules[1:5])
+```
+```{r}
+berry_yogurt_rules2 <- subset(rules, items %ain% c("berries","yogurt"))
+inspect(berry_yogurt_rules2)
+```
+
+```{r}
+highconfidence <- subset(rules, confidence>0.5)
+inspect(highconfidence[1:5])
+```
+
+#### 시각화
+```{r}
+plot(rules)
+```
+
+```{r}
+plot(fruit_rules)
+```
+
+```{r}
+plot(berry_yogurt_rules, method = "scatterplot")
+```
+
+```{r}
+plot(berry_yogurt_rules2, method = "graph")
+```
+
+```{r}
+plot(rules, method = "graph", control = list(type="items", alpha=1))
+```
+
+```{r}
+plot(fruit_rules, method = "paracoord")
+```
+
+```{r}
+# plot(rules, method="graph", interactive = TRUE, shading = TRUE)
+# plot(fruit_rules, method="graph", interactive = TRUE, shading = TRUE)
+```
+
+
+```{r}
+write(rules, file="groceryrules.csv", sep=",",row.names=FALSE)
+```
+
+rules를 데이터 프레임으로 바꾸고 싶을 때
+```{r}
+rules_dataframe <- as(rules, "data.frame")
+
+```
+
+
+

@@ -1,0 +1,100 @@
+---
+title: "KNN02"
+output: html_document
+---
+
+```{r}
+rm(list=ls())
+# install.packages()
+library(kknn)
+
+dat <- read.csv("C:/Users/Lucy Kim/Documents/dataitgirls/datahee/wisc_bc_data.csv",header = TRUE, row.names = 1)
+RandomIndex <- sample(x=1:nrow(dat), size = round(0.7*nrow(dat)),replace =FALSE)
+train.dat <- dat[RandomIndex,]
+test.dat <- dat[-RandomIndex,]
+
+kknn_fit<-kknn(diagnosis ~ ., 
+     train = train.dat,
+     test = test.dat,
+     distance = 2,
+     kernel = "triangular")
+kknn_fit
+```
+kernel은 유사도 분포고
+distance =2 를 넣으면 유클리디안 거리로 계산이 됨  
+: 민코스키 거리에서 2를 넣으면 유/ 1을 넣으면 맨하탄거리로 계산됨
+
+
+test데이터 까지 넣었으니까 예측값까지 출력하겠지?
+```{r}
+kknn_pred <- fitted(kknn_fit)
+library(gmodels)
+CrossTable(x = test.dat$diagnosis,
+           y = kknn_pred,
+           prop.r = FALSE,
+           prop.c = FALSE,
+           prop.t = FALSE,
+           prop.chisq = FALSE)
+```
+```{r}
+LOOCV_kknn <- train.kknn(diagnosis ~., train.dat,kmax = 29, distance = 2, kernel = "triangular")
+LOOCV_kknn
+```
+저절로 crossvalidation 함
+leave-one-out : 하나만 빼고 나머지는 train data로 데이터의 개수만큼 반복함
+
+
+```{r}
+kknn_fit2<-kknn(diagnosis ~ ., 
+     train = train.dat,
+     test = test.dat,
+     k=11,
+     distance = 2,
+     kernel = "triangular")
+
+kknn_pred2 <- fitted(kknn_fit2)
+
+CrossTable(x = test.dat$diagnosis,
+           y = kknn_pred2,
+           prop.r = FALSE,
+           prop.c = FALSE,
+           prop.t = FALSE,
+           prop.chisq = FALSE)
+
+```
+
+
+# ?kknn
+*Kernel to use. Possible choices are "rectangular" (which is standard unweighted knn), "triangular", "epanechnikov" (or beta(2,2)), "biweight" (or beta(3,3)), "triweight" (or beta(4,4)), "cos", "inv", "gaussian", "rank" and "optimal".
+
+
+kknn 가중치를 고려하지 않는 방법 : uniform 이랑 똑같다는데 얜 어디서 나온거야.....? = pdf 참고
+```{r}
+LOOCV_kknn2 <- train.kknn(diagnosis ~., train.dat,kmax = 29, distance = 2, kernel = "rectangular")
+LOOCV_kknn2
+```
+
+```{r}
+kknn_fit3 <- kknn(diagnosis ~ ., 
+     train = train.dat,
+     test = test.dat,
+     k=7,
+     distance = 2,
+     kernel = "rectangular")
+
+kknn_pred3 <- fitted(kknn_fit3)
+
+CrossTable(x = test.dat$diagnosis,
+           y = kknn_pred3,
+           prop.r = FALSE,
+           prop.c = FALSE,
+           prop.t = FALSE,
+           prop.chisq = FALSE)
+
+```
+
+
+
+
+
+

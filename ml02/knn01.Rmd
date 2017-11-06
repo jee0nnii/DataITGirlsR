@@ -1,0 +1,194 @@
+---
+title: "KNN"
+output: html_document
+---
+```{r}
+getwd()
+```
+
+
+
+```{r}
+dat <- read.csv("C:/Users/Lucy Kim/Documents/dataitgirls/datahee/wisc_bc_data.csv",header = TRUE, row.names = 1)
+```
+### 변수설명
+* 위스콘신 유방암 데이터 (Wisonsin Breast Cancer data)
+* 미세바늘로 흡입한(Fine Needle Aspirate, FNA) 세포들을 디지털 이미지화한 후, 
+* 각 이미지를 이미지분석 소프트웨어로 분석한 결과를 예측변수로 사용하여
+* 종양이 악성인지 양성인지를 판별해내는 분류분석 문제
+
+
+* radius : 반지름 
+* texture : 그레이스케일 값의 표준편차 
+* perimeter : 둘레
+* area : 면적
+* smoothness : 반지름의 국소적 변화 정도(local variation)
+* compactness : (perimeter^2 / area - 1.0)
+* concavity : 오목한 정도(severity of concave portions of the contour)
+* concave_points : 오목한 점들의 개수(number of concave portions of the contour)
+* symmetry : 대칭도
+* fractal dimension : 프랙탈 차원 (https://en.wikipedia.org/wiki/Coastline_paradox)
+
+* mean : 평균
+* se : 표준편차
+* worst : 극단값
+
+* diagnosis : 진단 / M=악성(malignant), B=양성(benign)
+
+#### 표준화 (변수마다 해줘야되니까 for & 함수 만들기)
+데이터값(x) - 최소값 / 최대값 - 최소값
+```{r}
+minmax <- function(x){
+  z = (x - min(x))/(max(x) - min(x))
+  return(z)
+}
+
+a <- c(1:10)
+minmax(a)
+```
+
+#### apply 사용
+1 : 행 방향
+2 : 열 방향
+
+들어온 데이터를 열의 방향으로 다 더해줘
+```{r}
+apply(dat[, !names(dat) %in% "diagnosis"], 2, sum)
+```
+
+종속변수(diagnosis)를 뺀 설명변수라(x)만 가져와라
+```{r}
+NormDat <- apply(dat[, !names(dat) %in% "diagnosis"], 2, minmax)
+class(NormDat)
+```
+```{r}
+NormDat <- as.data.frame(NormDat)
+class(NormDat)
+```
+
+# KNN (plain)
+이미 종속변수를 제외해버린게 : normdat니까
+기존 데이터를 불러서 train을 구성해야 됨
+```{r}
+# install.packages("class")
+library(class)
+
+set.seed(1234)
+RandomIndex <- sample(x=1:nrow(NormDat), size = round(0.8*nrow(NormDat)),replace =FALSE)
+
+```
+
+설명변수 vs 종속변수
+```{r}
+train_X <- NormDat[RandomIndex,]
+test_X <- NormDat[-RandomIndex,]
+train_Y <- dat[RandomIndex,"diagnosis"]
+test_Y <- dat[-RandomIndex,"diagnosis"]
+```
+
+```{r}
+dim(train_X)
+dim(test_X)
+dim(train_Y)
+length(train_Y)
+```
+
+
+knn적합
+cl : factor of true classifications of training set
+가장 가까운 21개의 데이터만 보고 싶을 때
+```{r}
+pred_knn <- knn(train = train_X,
+                test = test_X,
+                cl = train_Y,
+                k = 21)
+```
+
+```{r}
+pred_knn
+table(test_Y,pred_knn)
+```
+
+```{r}
+# install.packages("gmodels")
+library(gmodels)
+
+CrossTable(x=test_Y, y=pred_knn,
+           prop.chisq=FALSE,
+           prop.c=FALSE,
+           prop.r=FALSE)
+```
+
+#### 오차 테이블생성
+```{r}
+Candidate_K <- seq(from =1, to=29, by=2)
+ErrorMat <- matrix(ncol = 5, nrow = length(Candidate_K))
+ErrorMat
+```
+
+데이터 5등분
+```{r}
+foldN <- sample(x=1:5, size = nrow(train_X),replace = TRUE)
+foldN
+```
+
+
+```{r}
+for (i in 1:5){
+  CrossTrain_X <- train_X[foldN != i, ]
+  CrossTest_X <- train_X[foldN == i, ]
+  
+  CrossTrain_Y <- train_Y[foldN != i]
+  CrossTest_Y <- train_Y[foldN == i]
+
+  j<-1
+  
+  for (j in 1:length(Candidate_K)){
+    pred <- knn(train = CrossTrain_X,
+                test = CrossTest_X,
+                cl = CrossTrain_Y,
+                k = Candidate_K[j])
+    
+    tab <- table(CrossTest_Y,pred)
+    
+    misclass <- sum(tab[1,2] + tab[2,1]) / sum(tab)
+    
+    ErrorMat[j,i] <- misclass
+  }
+}
+```
+
+
+```{r}
+mean_error <- apply(ErrorMat,1,mean)
+mean_error
+which.min(mean_error)
+Candidate_K
+pred_knn2 <- knn(train = train_X,
+                test = test_X,
+                cl = train_Y,
+                k = 9)
+# k= Cadidate_k[which.min(mean_error)]
+```
+
+```{r}
+pred_knn2 <- knn(train = train_X,
+                test = test_X,
+                cl = train_Y,
+                k = 9)
+table(test_Y,pred_knn2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

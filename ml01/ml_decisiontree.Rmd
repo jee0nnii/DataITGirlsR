@@ -1,0 +1,127 @@
+---
+title: "decision tree"
+output: html_document
+---
+Question 3.
+흉부외과환자303명을대상으로한데이터로, 심장병이있는지에대한 분류모형을세워보자.
+종속변수(Y) : AHD -심장병의유무
+
+
+```{r}
+#install.packages("tree")
+library(tree)
+```
+###read data
+```{r}
+heart <- read.csv('http://www-bcf.usc.edu/~gareth/ISL/Heart.csv', row.names = 1)
+head(heart)
+```
+###data split
+```{r}
+set.seed(123)
+RandomIndex <- sample(x=1:nrow(heart),size = round(0.7*nrow(heart)), replace = FALSE)
+
+train.heart <- heart[RandomIndex,]
+test.heart <- heart[-RandomIndex,]
+
+```
+
+```{r}
+prop.table(table(train.heart$AHD))
+
+```
+```{r}
+tree_fit <- tree(AHD~., data= train.heart)
+tree_fit
+```
+
+```{r}
+plot(tree_fit)
+text(tree_fit, pretty = 0)
+```
+###가지치기
+- cross validation
+
+```{r}
+tree_CV <- cv.tree(tree_fit, K = 5, FUN = prune.misclass)
+plot(tree_CV)
+```
+
+```{r}
+tree_prune <- prune.misclass(tree_fit, best = 9)
+plot(tree_prune)
+text(tree_prune, pretty = 0)
+```
+
+```{r}
+tree_pred <- predict(tree_prune, test.heart, type = "class")
+table(tree_pred)
+```
+
+```{r}
+tree_tab <- table(test.heart$AHD, tree_pred)
+tree_tab
+```
+```{r}
+tree_acc <- (tree_tab[1,1] + tree_tab[2,2]) / sum(tree_tab)
+tree_acc
+```
+```{r}
+tree_sen <- tree_tab[2,2] / sum(tree_tab[2,])
+tree_sen
+```
+실제 yes인ㄷ
+
+
+```{r}
+tree_spe <- tree_tab[1,1] / sum(tree_tab[1,])
+tree_spe
+```
+실제 no 인ㄷ
+
+
+#party
+```{r}
+#install.packages("party")
+library(party)
+
+party_fit <- ctree(AHD~., data = train.heart)
+plot(party_fit)
+```
+```{r}
+party_pred <- predict(party_fit, test.heart)
+table(test.heart$AHD, party_pred)
+
+```
+```{r}
+party_tab <-table(test.heart$AHD, party_pred)
+```
+
+```{r}
+party_acc <-(party_tab[1,1] +party_tab[2,2]) / sum(party_tab)
+party_sen <- party_tab[2,2] / sum(party_tab[2,]) 
+party_spe <- party_tab[2,2] / sum(party_tab[2,]) 
+party_acc 
+party_sen
+party_spe
+```
+
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

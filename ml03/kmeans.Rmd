@@ -1,0 +1,104 @@
+---
+title: "클러스터링2"
+output: html_document
+---
+```{r}
+wine <- read.table("C:/Users/Lucy Kim/Documents/dataitgirls/datahee/wine.txt",
+                   header=FALSE, sep=",")
+colnames(wine) <- c("Type", "Alcohol", "MalicAcid", "Ash",
+                    "AlcalinityOfAsh", "Magnesium", "TotalPhenols",
+                    "Flavanoids", "NonflavanoidPhenols", "Proanthocyanins",
+                    "ColorIntensity", "Hue", "OD280_OD315_OfDilutedWines", "Proline")
+
+Wine <- wine[ ,-1]
+WineType <- wine[ ,1] 
+```
+
+
+#### 표준화 
+```{r}
+Wine <- as.data.frame(scale(Wine))
+class(Wine)
+```
+
+#### K의 갯수 구하기 
+```{r}
+# install.packages("NbClust")
+library(NbClust)
+
+KmeansClust<- NbClust(Wine, distance="euclidean", 
+                      min.nc=2, max.nc=15, method="kmeans")
+
+table(KmeansClust$Best.nc[1,])
+
+par(mfrow=c(1,1))
+barplot(table(KmeansClust$Best.nc[1, ]),
+        xlab="Number of Clusters",
+        ylab="Number of Criteria",
+        main="Number of Clusters Chosen by 26 Criteria")
+
+KmeansClust$All.index[ ,"Silhouette"]
+silhouette <- data.frame(KmeansClust$All.index[ ,"Silhouette"])
+names(silhouette) <- "sil"
+
+plot(silhouette$sil~row.names(silhouette), type="b")
+
+```
+#### K-means
+```{r}
+set.seed(1234)
+Kmeans_Fit <- kmeans(Wine, 3)
+
+table(WineType, Kmeans_Fit$cluster)
+
+plot(Wine, pch=19, col=Kmeans_Fit$cluster)
+```
+
+#### K-medoids
+```{r}
+library(cluster)
+
+kmedoid_fit <- pam(Wine, 3, diss=FALSE)
+kmedoid_fit$silinfo$avg.width
+```
+
+* k - medoids 를 이용한 가장 좋은 k 찾기 2~15
+```{r}
+AveSilouette <- c()
+
+for (i in 2:15){
+  AveSilouette[i] <- pam(Wine, k=i, diss = FALSE)$silinfo$avg.width
+}
+AveSilouette
+
+which.max(AveSilouette)
+
+plot(kmedoid_fit)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

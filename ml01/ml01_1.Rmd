@@ -1,0 +1,58 @@
+---
+title: "ml01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## iris validation test
+
+```{r}
+rm(list=ls())
+
+data(iris)
+
+set.seed(170919)
+RandomIndex <- sample(x=c("Train", "Validation", "Test"),
+                      size=nrow(iris),
+                      prob=c(0.6, 0.2, 0.2),
+                      replace=TRUE)
+prop.table(table(RandomIndex))
+```
+
+## 할당 값 check
+
+```{r}
+TrainIris <- iris[RandomIndex=="Train", ]
+ValidIris <- iris[RandomIndex=="Validation", ]
+TestIris <- iris[RandomIndex=="Test", ]
+
+dim(TrainIris)
+dim(ValidIris)
+dim(TestIris)
+```
+### Train
+```{r}
+lmFit1 <- lm(Sepal.Length~., data=TrainIris)
+lmFit2 <- lm(Sepal.Length~Sepal.Width, data=TrainIris)
+lmFit3 <- lm(Sepal.Length~Sepal.Width+Petal.Length, data=TrainIris)
+```
+### Validation
+```{r}
+lmPred1 <- predict(lmFit1, ValidIris)
+lmPred2 <- predict(lmFit2, ValidIris)
+lmPred3 <- predict(lmFit3, ValidIris)
+```
+### MSE
+```{r}
+mean((lmPred1 - ValidIris$Sepal.Length)^2)
+mean((lmPred2 - ValidIris$Sepal.Length)^2)
+mean((lmPred3 - ValidIris$Sepal.Length)^2)
+```
+### Test
+```{r}
+lmFinalPred <- predict(lmFit1, TestIris)
+mean((lmFinalPred - TestIris$Sepal.Length)^2)
+```
